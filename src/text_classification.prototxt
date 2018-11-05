@@ -1,0 +1,153 @@
+# Enter your network definition here.
+# Use Shift+Enter to update the visualization.
+
+input: "data"
+input_shape {
+  dim: 1
+  dim: 1
+  dim: 20
+  dim: 256
+}
+layer {
+  name: "conv4"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv4"
+  convolution_param {
+    bias_term: true
+    num_output: 64
+    pad: 0
+    kernel_h : 4
+    kernel_w : 256
+    stride: 1
+  }
+}
+layer {
+  name: "conv3"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv3"
+  convolution_param {
+    bias_term: true
+    num_output: 64
+    pad: 0
+    kernel_h : 3
+    kernel_w : 256
+    stride: 1
+  }
+}
+layer {
+  name: "conv2"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv2"
+  convolution_param {
+    bias_term: true
+    num_output: 64
+    pad: 0
+    kernel_h : 2
+    kernel_w : 256
+    stride: 1
+  }
+}
+layer {
+  name: "relu4"
+  type: "ReLU"
+  bottom: "conv4"
+  top: "relu4"
+}
+
+layer {
+  name: "pool4"
+  type: "Pooling"
+  bottom: "relu4"
+  top: "pool4"
+  pooling_param {
+    pool: MAX
+    kernel_h: 17
+    kernel_w:1
+    stride: 1
+  }
+}
+layer {
+  name: "relu3"
+  type: "ReLU"
+  bottom: "conv3"
+  top: "relu3"
+}
+layer {
+  name: "pool3"
+  type: "Pooling"
+  bottom: "relu3"
+  top: "pool3"
+  pooling_param {
+    pool: MAX
+    kernel_h: 18
+    kernel_w:1
+    stride: 1
+  }
+}
+
+layer {
+  name: "relu2"
+  type: "ReLU"
+  bottom: "conv2"
+  top: "relu2"
+}
+layer {
+  name: "pool2"
+  type: "Pooling"
+  bottom: "relu2"
+  top: "pool2"
+  pooling_param {
+    pool: MAX
+    kernel_h: 19
+    kernel_w:1
+    stride: 1
+  }
+}
+layer {
+  name: "concat"
+  bottom: "pool4"
+  bottom: "pool3"
+  bottom: "pool2"
+  top: "concat"
+  type: "Concat"
+  concat_param {
+    axis: 1
+  }
+}
+
+layer {
+  name: "fc"
+  type: "InnerProduct"
+  inner_product_param {
+    num_output: 11
+  }
+  bottom: "concat"
+  top: "fc"
+}
+
+layer {
+  name: "fc_bn"
+  type: "BatchNorm"
+  bottom: "fc"
+  top: "fc"
+  batch_norm_param {
+    use_global_stats: true
+    eps: 0.00001
+  }
+}
+layer {
+  name: "fc_relu"
+  type: "ReLU"
+  bottom: "fc"
+  top: "fc"
+}
+
+layer {
+  name: "softmax"
+  bottom: "fc"
+  top: "softmax"
+  type: "Softmax"
+}
