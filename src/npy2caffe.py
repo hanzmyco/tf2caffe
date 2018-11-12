@@ -1,13 +1,16 @@
 import os
 import sys
 import numpy as np
-from PIL import Image
+import glob
+#from PIL import Image
 from argparse import ArgumentParser
 from collections import OrderedDict
 
 caffe_root = '/root/caffe1s'
 sys.path.insert(0, os.path.join(caffe_root, 'python'))
-import caffe1s
+#import caffe1s
+
+
 
 def load_weight_map(path):
     weights_map = OrderedDict()
@@ -78,18 +81,37 @@ if __name__ == '__main__':
     weights_file = args.npy_file
     caffemodel_file = args.caffemodel_file"""
 
-    deploy_file = "./Deeplab_V3_Xception_cyBN_final.prototxt"
-    weights_file = "./try.npy"
-    caffemodel_file = "./Deeplab_V3_Xception_cy_final.caffemodel"
+    deploy_file = "./text_classification.prototxt"
+    weights_path = "../data/tf/-520/scope_model"
+    caffemodel_file = "./text_classification.caffemodel"
 
-    net = caffe1s.Net(deploy_file, caffe1s.TRAIN)
+    weights_files = []
+    path_list=[]
+    weights_names = []
+    for path,subdirs,files in os.walk(weights_path):
+        weights_names.append(files)
+        path_list.append(path)
+        for ite in files:
+            weights_files.append(path+'/'+ite)
+            print(ite)
+
+    #print(weights_files)
+    for ite in weights_files:
+        print(ite)
+        weights = np.load(ite)
+        #print(weights)
+
+
+
+
+
+
+    #net = caffe1s.Net(deploy_file, caffe1s.TRAIN)
     #print(net.params)
     #exit()
-    weights = np.load(weights_file).tolist()
     #try:
-    net = load_weights(net, weights)
+    #net = load_weights(net, weights)
     #except:
-    net.save(caffemodel_file)
-    net.save(caffemodel_file)
-
+    #net.save(caffemodel_file)
+    #net.save(caffemodel_file)
     print('Model Saved!')

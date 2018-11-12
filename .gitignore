@@ -3,3 +3,6 @@ __pycache__
 *.html
 tensorflow_model/
 src/Deeplab_V3_Xception_cyBN_final.prototxt
+.idea/
+caffe_model/
+data/

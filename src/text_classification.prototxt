@@ -1,17 +1,48 @@
-# Enter your network definition here.
 # Use Shift+Enter to update the visualization.
-
-input: "data"
-input_shape {
-  dim: 1
-  dim: 1
-  dim: 20
-  dim: 256
+layer {
+  name: "data"
+  type: "Input"
+  top: "data"
+  input_param {
+    shape: { 
+      dim: 1
+      dim: 20 
+    } 
+  }
+  data_param {
+    source: "text_lmdb"
+    batch_size: 1
+    backend: LMDB
+  }
+}
+layer {
+  name: "embed"
+  type: "Embed"
+  bottom: "data"
+  top: "embed_data1"
+  embed_param {
+    input_dim: 3315
+    num_output: 256
+  }
+}
+layer {
+  name: "reshape"
+  bottom: "embed_data1"
+  top: "embed_data"
+  type: "Reshape"
+  reshape_param {
+    shape {
+      dim: 0
+      dim: 1
+      dim: 20
+      dim: 256
+    }
+  }
 }
 layer {
   name: "conv4"
   type: "Convolution"
-  bottom: "data"
+  bottom: "embed_data"
   top: "conv4"
   convolution_param {
     bias_term: true
@@ -25,7 +56,7 @@ layer {
 layer {
   name: "conv3"
   type: "Convolution"
-  bottom: "data"
+  bottom: "embed_data"
   top: "conv3"
   convolution_param {
     bias_term: true
@@ -39,7 +70,7 @@ layer {
 layer {
   name: "conv2"
   type: "Convolution"
-  bottom: "data"
+  bottom: "embed_data"
   top: "conv2"
   convolution_param {
     bias_term: true
@@ -108,46 +139,84 @@ layer {
 }
 layer {
   name: "concat"
-  bottom: "pool4"
-  bottom: "pool3"
   bottom: "pool2"
+  bottom: "pool3"
+  bottom: "pool4"
   top: "concat"
   type: "Concat"
   concat_param {
     axis: 1
   }
 }
+layer {
+  name: "reshape"
+  bottom: "concat"
+  top: "reshape"
+  type: "Reshape"
+  reshape_param {
+    shape {
+      dim: 0
+      dim: -1
+    }
+  }
+}
+layer {
+  name: "dropout"
+  bottom: "reshape"
+  top: "dropout"
+  type: "Dropout"
+  dropout_param {
+    dropout_ratio: 0.3
+  }
+}
 
 layer {
-  name: "fc"
+  name: "dense"
+  bottom: "dropout"
+  top: "dense"
   type: "InnerProduct"
   inner_product_param {
     num_output: 11
   }
-  bottom: "concat"
-  top: "fc"
 }
-
 layer {
-  name: "fc_bn"
-  type: "BatchNorm"
-  bottom: "fc"
-  top: "fc"
-  batch_norm_param {
-    use_global_stats: true
-    eps: 0.00001
+  name: "batchnorm"
+  bottom: "dense"
+  top: "bn"
+  type: "BatchNorm" 
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
   }
 }
 layer {
-  name: "fc_relu"
-  type: "ReLU"
-  bottom: "fc"
-  top: "fc"
+  name: "scale"
+  bottom: "bn"
+  top: "scale"
+  type: "Scale"
+  scale_param {
+    bias_term: true
+  }
 }
 
 layer {
-  name: "softmax"
-  bottom: "fc"
-  top: "softmax"
-  type: "Softmax"
+  name: "relu5"
+  bottom: "scale"
+  top: "relu5"
+  type: "ReLU"
+}
+
+layer {
+  name: "argmax"
+  bottom: "relu5"
+  top: "argmax"
+  type: "ArgMax"
 }
